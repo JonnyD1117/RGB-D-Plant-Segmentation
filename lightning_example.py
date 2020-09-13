@@ -26,7 +26,7 @@ from pytorch_lightning.core import LightningModule
 from pytorch_lightning import Trainer
 from pytorch_lightning.profiler import SimpleProfiler, AdvancedProfiler
 import pytorch_lightning as pl
-from pytorch_lightning.logging import TensorBoardLogger
+from pytorch_lightning.loggers import TensorBoardLogger
 from matplotlib import pyplot as plt
 import numpy as np
 
@@ -77,7 +77,7 @@ class LightningTemplateModel(LightningModule):
         self.vs = None
 
     def forward(self, x):
-        return self.model.forward(x)
+        return self.model(x)
 
     def training_step(self, batch, batch_idx):
         """
@@ -218,13 +218,18 @@ if __name__ == "__main__":
     #     mode='max'
     # )
 
+    print(torch.cuda.device_count())
 
     tb_logger = TensorBoardLogger('tb_logs', name='my_model')
 
     cp_cb = ModelCheckpoint(filepath='checkpoints/{epoch}-{val_loss:.3f}', save_top_k=-1)
     model = LightningTemplateModel()
-    learner = Trainer(fast_dev_run=False, logger=[tb_logger],  accumulate_grad_batches=2, check_val_every_n_epoch=1,
-                      min_epochs=80, max_epochs=200, gpus=1, default_save_path=os.path.join(os.getcwd(), 'checkpoints'),
+    # learner = Trainer(fast_dev_run=False, logger=[tb_logger],  accumulate_grad_batches=2, check_val_every_n_epoch=1,
+    #                   min_epochs=80, max_epochs=200, gpus=1, default_save_path=os.path.join(os.getcwd(), 'checkpoints'),
+    #                   checkpoint_callback=cp_cb)
+
+    learner = Trainer(fast_dev_run=False, logger=[tb_logger], accumulate_grad_batches=2, check_val_every_n_epoch=1,
+                      min_epochs=80, max_epochs=200, gpus=1,
                       checkpoint_callback=cp_cb)
 
     # # # Run learning rate finder
