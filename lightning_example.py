@@ -166,10 +166,11 @@ class LightningTemplateModel(LightningModule):
         At least one optimizer is required.
         """
         optimizer = optim.Adam(self.parameters(), lr=self.learning_rate)
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, threshold_mode='rel', verbose=True)
-        # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1 )
+        # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, threshold_mode='rel', verbose=True)
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
-        return [optimizer], [{'scheduler': scheduler, 'reduce_on_plateau': True, 'monitor': 'training_loss'}]
+        # return [optimizer], [{'scheduler': scheduler, 'reduce_on_plateau': True, 'monitor': 'training_loss'}]
+        return [optimizer], [{'scheduler': scheduler}]
 
     def prepare_data(self):
         self.ds = CarvanaData()
@@ -231,8 +232,7 @@ if __name__ == "__main__":
     #                   checkpoint_callback=cp_cb)
 
     learner = Trainer(fast_dev_run=False, logger=tb_logger, accumulate_grad_batches=2, check_val_every_n_epoch=1,
-                      min_epochs=80, max_epochs=200, gpus=1,
-                      checkpoint_callback=cp_cb)
+                      min_epochs=80, max_epochs=200, gpus=1, checkpoint_callback=cp_cb)
 
     # # # Run learning rate finder
     # lr_finder = learner.lr_find(model)
