@@ -88,7 +88,8 @@ class LightningTemplateModel(LightningModule):
         x, y = batch
         y_hat = self(x)
 
-        criterion = CustomLossMetrics.BceDiceLoss()
+        criterion = CustomLossMetrics.DiceLoss()
+        # criterion = CustomLossMetrics.BceDiceLoss()
         dice_score = CustomLossMetrics.Dice()
         dice = dice_score.forward(y_hat, y)
 
@@ -111,6 +112,7 @@ class LightningTemplateModel(LightningModule):
             "training_loss": loss,
             "progress_bar": tensorboard_logs,
             "log": tensorboard_logs
+
         }
         return output
 
@@ -228,7 +230,7 @@ if __name__ == "__main__":
     #                   min_epochs=80, max_epochs=200, gpus=1, default_save_path=os.path.join(os.getcwd(), 'checkpoints'),
     #                   checkpoint_callback=cp_cb)
 
-    learner = Trainer(fast_dev_run=False, logger=[tb_logger], accumulate_grad_batches=2, check_val_every_n_epoch=1,
+    learner = Trainer(fast_dev_run=False, logger=tb_logger, accumulate_grad_batches=2, check_val_every_n_epoch=1,
                       min_epochs=80, max_epochs=200, gpus=1,
                       checkpoint_callback=cp_cb)
 

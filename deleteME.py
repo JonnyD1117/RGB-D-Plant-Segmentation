@@ -2,57 +2,61 @@ import torch
 
 from LossMetrics import CustomLossMetrics
 import cv2
-
+import numpy as np
 from PIL import Image
 from matplotlib import pyplot as plt
 
 
-image_path = r"C:\Users\Indy-Windows\Desktop\0cdf5b5d0ce1_04.jpg"
-mask_path = r"C:\Users\Indy-Windows\Desktop\0cdf5b5d0ce1_04_mask.jpg"
+image_path = r"C:\Users\Indy-Windows\Desktop\carvana\carvana\data\train\images\0cdf5b5d0ce1_01.jpg"
+mask_path = r"C:\Users\Indy-Windows\Desktop\carvana\carvana\data\train\images\0cdf5b5d0ce1_01.jpg_mask.jpg"
+
 dist_mask_path = r"C:\Users\Indy-Windows\Desktop\0cdf5b5d0ce1_04_mask_distored.jpg"
 white_mask_path = r"C:\Users\Indy-Windows\Desktop\0cdf5b5d0ce1_04_mask_white.jpg"
 black_mask_path = r"C:\Users\Indy-Windows\Desktop\0cdf5b5d0ce1_04_mask_black.jpg"
 
 image = cv2.imread(image_path)
 mask = cv2.imread(mask_path)
-dist_mask = cv2.imread(dist_mask_path)
 
-image = torch.from_numpy(image)
-mask = torch.from_numpy(mask)
-mask_dist = torch.from_numpy(dist_mask)
+
+print(f"Image Max {np.max(image)} & Image Min {np.min(image)}")
+# dist_mask = cv2.imread(dist_mask_path)
+#
+# image = torch.from_numpy(image)
+# mask = torch.from_numpy(mask)
+# mask_dist = torch.from_numpy(dist_mask)
 # mask_white = torch.Tensor(mask_white)
 # mask_black = torch.Tensor(mask_black)
 
 
-mask = mask.unsqueeze(dim=0)
-mask_dist = mask_dist.unsqueeze(dim=0)
-
-
-print("Mask Shape", mask.size())
-print("Distort Mask", mask_dist.size())
+# mask = mask.unsqueeze(dim=0)
+# mask_dist = mask_dist.unsqueeze(dim=0)
+#
+#
+# print("Mask Shape", mask.size())
+# print("Distort Mask", mask_dist.size())
 
 # arr = torch.Tensor([[1,2],[3,4]])
 #
 # print(arr)
 # print(arr.view(-1))
 
-
-def DiceCoef(pred, target):
-    smooth = 1.
-    iflat = pred.contiguous().view(-1)
-    tflat = target.contiguous().view(-1)
-    intersection = (iflat * tflat).sum()
-    A_sum = torch.sum(iflat * iflat)
-    B_sum = torch.sum(tflat * tflat)
-    return (2. * intersection + smooth) / (A_sum + B_sum + smooth)
-
-
-
-criterion = CustomLossMetrics.DiceLoss()
-
-loss = 1-DiceCoef(mask, mask)
-print(criterion.forward(mask_dist, mask))
-print(criterion.forward(mask, mask))
+#
+# def DiceCoef(pred, target):
+#     smooth = 1.
+#     iflat = pred.contiguous().view(-1)
+#     tflat = target.contiguous().view(-1)
+#     intersection = (iflat * tflat).sum()
+#     A_sum = torch.sum(iflat * iflat)
+#     B_sum = torch.sum(tflat * tflat)
+#     return (2. * intersection + smooth) / (A_sum + B_sum + smooth)
+#
+#
+#
+# criterion = CustomLossMetrics.DiceLoss()
+#
+# loss = 1-DiceCoef(mask, mask)
+# print(criterion.forward(mask_dist, mask))
+# print(criterion.forward(mask, mask))
 
 
 
@@ -78,7 +82,7 @@ from matplotlib import pyplot as plt
 import logging
 import sys
 
-import torch
+# import torch
 import torchvision
 import torch.nn as nn
 import torch.optim as optim

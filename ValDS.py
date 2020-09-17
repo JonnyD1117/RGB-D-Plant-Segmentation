@@ -113,7 +113,7 @@ class ValidationData(Dataset):
         image = TF.to_tensor(image)
         mask = TF.to_tensor(mask)
 
-        TF.normalize(image, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+        # TF.normalize(image, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         return image, mask
 
     def __len__(self):

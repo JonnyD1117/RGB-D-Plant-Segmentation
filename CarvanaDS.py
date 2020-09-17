@@ -87,11 +87,20 @@ class CarvanaData(Dataset):
         #     image = TF.rotate(image, angle)
         #     mask = TF.rotate(mask, angle)
 
+
+        # print(f" Pre Image Max {np.max(image)} & Pre Image Min {np.min(image)}")
+        # print(f"PRE -Image Shape: ", image)
+
+
         # Transform to tensor
         image = TF.to_tensor(image)
         mask = TF.to_tensor(mask)
 
-        TF.normalize(image, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+        # image = image / 255.0
+        # print(f"Post Image Max {torch.max(image)} & Post Image Min {torch.min(image)}")
+        # print(f"Image Shape: ", image)
+
+        # TF.normalize(image, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         return image, mask
 
 
@@ -120,8 +129,10 @@ class CarvanaData(Dataset):
             image, mask = Image.fromarray(image), Image.fromarray(mask)
             image, mask = self.segment_transform(image, mask)
 
+
         else:
             image, mask = Image.fromarray(image), Image.fromarray(mask)
             image, mask = self.segment_transform(image, mask)
+
 
         return image, mask
