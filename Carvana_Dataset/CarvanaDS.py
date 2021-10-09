@@ -9,7 +9,7 @@ from albumentations import (Compose, RandomCrop, Resize, HorizontalFlip, ShiftSc
 
 
 class CarvanaData(Dataset):
-    def __init__(self, root_dir=r"C:\Users\Indy-Windows\Desktop\carvana\carvana\data\train", transform=None, image_size=(512, 512)):
+    def __init__(self, root_dir=r".\data\train", transform=None, image_size=(512, 512)):
 
         # Initialize Directory Tree from current working directory if no directory is provided
         self.root_dir = root_dir
