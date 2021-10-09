@@ -28,7 +28,8 @@ from pytorch_lightning.callbacks.model_checkpoint import Callback
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 from torchmetrics.functional import dice_score
-from RGB_Segmentation.unet import UNet
+# from RGB_Segmentation.unet import UNet
+from RGB_Segmentation.off_the_shelf_unet import UNet
 
 
 class CarvanaUnetModel(LightningModule):
@@ -69,7 +70,7 @@ class CarvanaUnetModel(LightningModule):
         y_hat = self(x)
 
         # Compute Loss
-        dice_s = dice_score()
+        dice_s = dice_score(y_hat, x)
         loss = 1 - dice_s
 
         # criterion = CustomLossMetrics.DiceLoss()
@@ -88,15 +89,18 @@ class CarvanaUnetModel(LightningModule):
         self.logger.experiment.add_image("GT_Mask", grid_mask, 0)
         self.logger.experiment.add_image("Pred_Mask", grid_pred, 0)
 
-        tensorboard_logs = {'train_loss': loss, 'lr': self.learning_rate, 'train_dice': dice_s}
+        # tensorboard_logs = {'train_loss': loss, 'lr': self.learning_rate, 'train_dice': dice_s}
+        #
+        # output = {
+        #     "loss": loss,
+        #     "training_loss": loss,
+        #     "progress_bar": tensorboard_logs,
+        #     "log": tensorboard_logs
+        # }
 
-        output = {
-            "loss": loss,
-            "training_loss": loss,
-            "progress_bar": tensorboard_logs,
-            "log": tensorboard_logs
-        }
-        return output
+        self.log("my_loss", 10.0, prog_bar=True) #, "training_loss": loss, "progress_bar": tensorboard_logs, "log": tensorboard_logs)
+
+        # return output
 
     def validation_step(self, batch, batch_idx):
         """
@@ -109,7 +113,7 @@ class CarvanaUnetModel(LightningModule):
         y_hat = self(x)
 
         # Compute Loss
-        dice_s = dice_score()
+        dice_s = dice_score(y_hat, x)
         val_loss = 1 - dice_s
 
         # criterion = CustomLossMetrics.BceDiceLoss()
@@ -124,7 +128,10 @@ class CarvanaUnetModel(LightningModule):
             "progress_bar": val_tensorboard_logs,
             "log": val_tensorboard_logs
         }
-        return output
+
+        self.log("loss", 10.0, prog_bar=True)
+        # self.log(output)
+        # return output
 
     # def validation_epoch_end(self, outputs):
     #     """
