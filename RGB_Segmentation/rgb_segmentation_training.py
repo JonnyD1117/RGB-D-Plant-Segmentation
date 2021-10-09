@@ -28,6 +28,7 @@ from pytorch_lightning.callbacks.model_checkpoint import Callback
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 from torchmetrics.functional import dice_score
+from RGB_Segmentation.unet import UNet
 
 
 class CarvanaUnetModel(LightningModule):
@@ -165,15 +166,36 @@ class CarvanaUnetModel(LightningModule):
         """
         Pass training dataset to dataloader and return dataloader
         """
-        self.log.info('Training data loader called.')
+        # self.log.info('Training data loader called.')
         return DataLoader(self.ds, batch_size=self.batch_size, shuffle=True, num_workers=4)
 
     def val_dataloader(self):
         """
         Pass validation dataset to dataloader and return dataloader
         """
-        self.log.info('Validation data loader called.')
+        # self.log.info('Validation data loader called.')
         return DataLoader(self.vs, batch_size=self.batch_size, shuffle=False, num_workers=4)
+
+
+def main(hparams):
+    print(torch.cuda.device_count())
+    print(torch.cuda.is_available())
+
+    tb_logger = TensorBoardLogger('logs', name='my_model')
+    cp_cb = ModelCheckpoint(filepath='checkpoints/{epoch}-{val_loss:.3f}', save_top_k=-1)
+    model = CarvanaUnetModel()
+
+    learner = Trainer(fast_dev_run=False, logger=tb_logger, accumulate_grad_batches=2, check_val_every_n_epoch=1,
+                      min_epochs=80, max_epochs=200, gpus=1, checkpoint_callback=cp_cb)
+
+    # # # Run learning rate finder
+    # lr_finder = learner.lr_find(model)
+    # new_lr = lr_finder.suggestion()
+    # model.learning_rate = new_lr
+    # print(new_lr)
+
+    model.learning_rate = 0.0003
+    learner.fit(model)
 
 
 if __name__ == "__main__":
@@ -185,21 +207,6 @@ if __name__ == "__main__":
     #     mode='max'
     # )
 
-    print(torch.cuda.device_count())
-    print(torch.cuda.is_available())
-
-    # tb_logger = TensorBoardLogger('logs', name='my_model')
-    # cp_cb = ModelCheckpoint(filepath='checkpoints/{epoch}-{val_loss:.3f}', save_top_k=-1)
-    # model = CarvanaUnetModel()
-    #
-    # learner = Trainer(fast_dev_run=False, logger=tb_logger, accumulate_grad_batches=2, check_val_every_n_epoch=1,
-    #                   min_epochs=80, max_epochs=200, gpus=1, checkpoint_callback=cp_cb)
-    #
-    # # # # Run learning rate finder
-    # # lr_finder = learner.lr_find(model)
-    # # new_lr = lr_finder.suggestion()
-    # # model.learning_rate = new_lr
-    # # print(new_lr)
-    #
-    # model.learning_rate = 0.0003
-    # learner.fit(model)
+    parser = ArgumentParser()
+    args = parser.parse_args()
+    main(args)
