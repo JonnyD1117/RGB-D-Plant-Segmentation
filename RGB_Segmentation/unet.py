@@ -1,50 +1,6 @@
-import os
-from time import sleep
-import cv2
-import numpy as np
-from PIL import Image
 import torch
-import torchvision
-import torch.optim as optim
-from torchvision import transforms, datasets, utils
 import torch.nn as nn
-import torch.nn.functional as F
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-from torch.utils.data import Dataset, DataLoader
-from matplotlib import pyplot as plt
-from torch.optim.lr_scheduler import StepLR
 
-class ImgSegDataSet(Dataset):
-    def __init__(self, dir, img_transform=None, mask_transform=None):
-        self.input_folder = dir
-        self.Image_trans = img_transform
-        self.Mask_trans = mask_transform
-
-        self.image_dir = self.input_folder + "/images"
-        self.mask_dir = self.input_folder + "/masks"
-
-        self.image_list = os.listdir(self.image_dir)
-        self.mask_list = os.listdir(self.mask_dir)
-
-        self.image_path = None
-        self.label_path = None
-
-    def __len__(self):
-        if len(self.image_list) == len(self.mask_list):
-            return len(self.image_list)
-
-    def __getitem__(self, item):
-        # if torch.is_tensor(item):
-        #     item = item.tolist()
-
-        self.image_path = self.image_dir + "/" + self.image_list[item]
-        self.label_path = self.mask_dir + "/" + self.mask_list[item]
-
-        image = self.Image_trans(Image.open(self.image_path))
-        msk = self.Mask_trans(Image.open(self.label_path))
-
-        return image, msk
 
 class UNet(nn.Module):
     def __init__(self):
@@ -161,15 +117,14 @@ class UNet(nn.Module):
         # self.final_out = nn.Conv2d(16, 1, 1)
         self.final_out = nn.Conv2d(in_channels=16, out_channels=2, kernel_size=3, padding=(3 - 1) // 2)
 
-
     def forward(self, x):
-        #Encoder
+        # Encoder
         x1 = self.p1(self.c1(x))
         x2 = self.p2(self.c2(x1))
         x3 = self.p3(self.c3(x2))
         x4 = self.p4(self.c4(x3))
         x5 = self.c5(x4)
-        #Decoder
+        # Decoder
         x6 = self.u6(x5)
         x7 = torch.cat([x6, self.c4(x3)], 1)
         x8 = self.u7(self.c6(x7))
