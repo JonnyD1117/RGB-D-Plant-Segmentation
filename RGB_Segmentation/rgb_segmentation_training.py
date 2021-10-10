@@ -145,13 +145,13 @@ class CarvanaUnetModel(LightningModule):
         Configures the ADAM optimizer and a Learning-Rate Scheduler
         """
         # Define Optimizer & Learning Rate Scheduler
-        reduce_on_plateau = False
+        reduce_on_plateau = True
         optimizer = optim.Adam(self.parameters(), lr=self.learning_rate)
 
         # Declare which learning rate scheduler will run
         if reduce_on_plateau:
-            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, threshold_mode='rel', verbose=True)
-            return [optimizer], [{'scheduler': scheduler, 'reduce_on_plateau': True, 'monitor': 'training_loss'}]
+            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, mode='min', verbose=True)
+            return [optimizer], [{'scheduler': scheduler, 'monitor': 'loss'}]
 
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
         return [optimizer], [{'scheduler': scheduler}]
@@ -194,7 +194,7 @@ def main(hparams):
     # model.learning_rate = new_lr
     # print(new_lr)
 
-    model.learning_rate = 0.0003
+    model.learning_rate = 0.03
     learner.fit(model)
 
 
