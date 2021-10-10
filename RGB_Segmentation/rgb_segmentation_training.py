@@ -33,6 +33,7 @@ from pl_bolts.losses.object_detection import iou_loss
 # from RGB_Segmentation.unet import UNet
 from RGB_Segmentation.off_the_shelf_unet import UNet
 from RGB_Segmentation.dice_loss import DiceLoss
+from RGB_Segmentation.bce_dice_loss import DiceBCELoss
 
 
 class CarvanaUnetModel(LightningModule):
@@ -52,7 +53,7 @@ class CarvanaUnetModel(LightningModule):
         self.vs = None
         self.ts = None
 
-        self.loss_criterion = DiceLoss()
+        self.loss_criterion = DiceBCELoss()
 
     def forward(self, x):
         """
@@ -87,8 +88,7 @@ class CarvanaUnetModel(LightningModule):
         self.logger.experiment.add_image("GT_Mask", grid_mask, 0)
         self.logger.experiment.add_image("Pred_Mask", grid_pred, 0)
 
-        # self.logger.experiment.add_
-
+        self.logger.log_metrics({"lr": self.learning_rate},)
         # tensorboard_logs = {'train_loss': loss, 'lr': self.learning_rate, 'train_dice': dice_s}
         #
         # output = {
@@ -113,7 +113,6 @@ class CarvanaUnetModel(LightningModule):
         y_hat = self(x)
 
         # Compute Loss
-        dice_s = dice_score(y_hat, y)
         val_loss = self.loss_criterion(y_hat, y)
 
         val_tensorboard_logs = {'val_loss': val_loss, "val_dice_loss": val_loss}
@@ -145,13 +144,13 @@ class CarvanaUnetModel(LightningModule):
         Configures the ADAM optimizer and a Learning-Rate Scheduler
         """
         # Define Optimizer & Learning Rate Scheduler
-        reduce_on_plateau = False
+        reduce_on_plateau = True
         optimizer = optim.Adam(self.parameters(), lr=self.learning_rate)
 
         # Declare which learning rate scheduler will run
         if reduce_on_plateau:
-            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, threshold_mode='rel', verbose=True)
-            return [optimizer], [{'scheduler': scheduler, 'reduce_on_plateau': True, 'monitor': 'training_loss'}]
+            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, mode='min', verbose=True)
+            return [optimizer], [{'scheduler': scheduler, 'monitor': 'loss'}]
 
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
         return [optimizer], [{'scheduler': scheduler}]
@@ -185,7 +184,7 @@ def main(hparams):
     # cp_cb = ModelCheckpoint(filepath='models/checkpoints/{epoch}-{val_loss:.3f}', save_top_k=-1)
     model = CarvanaUnetModel()
 
-    learner = Trainer(fast_dev_run=False, logger=tb_logger, accumulate_grad_batches=2, check_val_every_n_epoch=1,
+    learner = Trainer(fast_dev_run=False, logger=tb_logger, accumulate_grad_batches=4, check_val_every_n_epoch=1,
                       min_epochs=80, max_epochs=200, gpus=1) #, checkpoint_callback=cp_cb)
 
     # # # Run learning rate finder
@@ -194,7 +193,7 @@ def main(hparams):
     # model.learning_rate = new_lr
     # print(new_lr)
 
-    model.learning_rate = 0.0003
+    model.learning_rate = 0.03
     learner.fit(model)
 
 
