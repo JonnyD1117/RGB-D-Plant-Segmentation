@@ -36,7 +36,7 @@ from RGB_Segmentation.off_the_shelf_unet import UNet
 
 model = UNet()
 # print(model.state_dict())
-checkpoint = torch.load(r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\logs\my_model\version_4\checkpoints\epoch=2-step=1421.ckpt")
+checkpoint = torch.load(r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\logs\my_model\version_5\checkpoints\epoch=77-step=36971.ckpt")
 # print(checkpoint['state_dict'])
 model.load_state_dict(checkpoint['state_dict'], strict=False)
 # print(model.state_dict())
@@ -59,26 +59,27 @@ for epoch in range(EPOCHS):
 
         # pred_mask = torch.squeeze(y_hat)
         pred_mask = y_hat[0][0][:][:]
-        print(f"Pred Mask Shape Post Squeeze = {pred_mask.shape}")
+        pred_mask = torch.sigmoid_(pred_mask) > .5
+        # print(f"Pred Mask Shape Post Squeeze = {pred_mask.shape}")
 
         pred_mask = pred_mask.detach().numpy()
 
-        print(pred_mask)
-        # plt.imshow(pred_mask)
-        # plt.show()
-
-
-        print(type(image))
-
-        import matplotlib.pyplot as plt
-        real_image = image[0][:][:][:]
-        real_image = real_image.permute(1, 2, 0)
-        plt.imshow(real_image)
+        # print(pred_mask)
+        plt.imshow(pred_mask)
         plt.show()
 
-        real_mask = mask[0][:][:][:]
-        real_mask = real_mask.permute(1, 2, 0)
-        # plt.imshow(real_mask)
+
+        # print(type(image))
+        #
+        # import matplotlib.pyplot as plt
+        # real_image = image[0][:][:][:]
+        # real_image = real_image.permute(1, 2, 0)
+        # plt.imshow(real_image)
         # plt.show()
+        #
+        # real_mask = mask[0][:][:][:]
+        # real_mask = real_mask.permute(1, 2, 0)
+        # # plt.imshow(real_mask)
+        # # plt.show()
 
         break
