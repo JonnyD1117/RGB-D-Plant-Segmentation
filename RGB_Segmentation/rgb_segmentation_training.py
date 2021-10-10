@@ -28,8 +28,11 @@ from pytorch_lightning.callbacks.model_checkpoint import Callback
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 from torchmetrics.functional import dice_score
+from pl_bolts.losses.object_detection import iou_loss
+
 # from RGB_Segmentation.unet import UNet
 from RGB_Segmentation.off_the_shelf_unet import UNet
+from RGB_Segmentation.dice_loss import DiceLoss
 
 
 class CarvanaUnetModel(LightningModule):
@@ -48,6 +51,8 @@ class CarvanaUnetModel(LightningModule):
         self.ds = None
         self.vs = None
         self.ts = None
+
+        self.loss_criterion = DiceLoss()
 
     def forward(self, x):
         """
@@ -70,14 +75,7 @@ class CarvanaUnetModel(LightningModule):
         y_hat = self(x)
 
         # Compute Loss
-        dice_s = dice_score(y_hat, x)
-        loss = 1 - dice_s
-
-        # criterion = CustomLossMetrics.DiceLoss()
-        # # criterion = CustomLossMetrics.BceDiceLoss()
-        # dice_score = CustomLossMetrics.Dice()
-        # dice = dice_score.forward(y_hat, y)
-        # loss = criterion.forward(y_hat, y)
+        loss = self.loss_criterion(y_hat, y)
 
         # Process Batched Images/Masks into a grid for logging
         grid_image = torchvision.utils.make_grid(x)
@@ -89,6 +87,8 @@ class CarvanaUnetModel(LightningModule):
         self.logger.experiment.add_image("GT_Mask", grid_mask, 0)
         self.logger.experiment.add_image("Pred_Mask", grid_pred, 0)
 
+        # self.logger.experiment.add_
+
         # tensorboard_logs = {'train_loss': loss, 'lr': self.learning_rate, 'train_dice': dice_s}
         #
         # output = {
@@ -98,9 +98,9 @@ class CarvanaUnetModel(LightningModule):
         #     "log": tensorboard_logs
         # }
 
-        self.log("my_loss", 10.0, prog_bar=True) #, "training_loss": loss, "progress_bar": tensorboard_logs, "log": tensorboard_logs)
+        self.log("loss", loss, prog_bar=True) #, "training_loss": loss, "progress_bar": tensorboard_logs, "log": tensorboard_logs)
 
-        # return output
+        return loss
 
     def validation_step(self, batch, batch_idx):
         """
@@ -113,13 +113,8 @@ class CarvanaUnetModel(LightningModule):
         y_hat = self(x)
 
         # Compute Loss
-        dice_s = dice_score(y_hat, x)
-        val_loss = 1 - dice_s
-
-        # criterion = CustomLossMetrics.BceDiceLoss()
-        # DL = CustomLossMetrics.DiceLoss()
-        # val_loss = criterion.forward(y_hat, y)
-        # dice_loss = DL.forward(y_hat, y)
+        dice_s = dice_score(y_hat, y)
+        val_loss = self.loss_criterion(y_hat, y)
 
         val_tensorboard_logs = {'val_loss': val_loss, "val_dice_loss": val_loss}
 
@@ -129,7 +124,7 @@ class CarvanaUnetModel(LightningModule):
             "log": val_tensorboard_logs
         }
 
-        self.log("loss", 10.0, prog_bar=True)
+        # self.log("loss", val_loss, prog_bar=True)
         # self.log(output)
         # return output
 
@@ -150,7 +145,7 @@ class CarvanaUnetModel(LightningModule):
         Configures the ADAM optimizer and a Learning-Rate Scheduler
         """
         # Define Optimizer & Learning Rate Scheduler
-        reduce_on_plateau = True
+        reduce_on_plateau = False
         optimizer = optim.Adam(self.parameters(), lr=self.learning_rate)
 
         # Declare which learning rate scheduler will run
@@ -185,15 +180,13 @@ class CarvanaUnetModel(LightningModule):
 
 
 def main(hparams):
-    print(torch.cuda.device_count())
-    print(torch.cuda.is_available())
 
     tb_logger = TensorBoardLogger('logs', name='my_model')
-    cp_cb = ModelCheckpoint(filepath='checkpoints/{epoch}-{val_loss:.3f}', save_top_k=-1)
+    # cp_cb = ModelCheckpoint(filepath='models/checkpoints/{epoch}-{val_loss:.3f}', save_top_k=-1)
     model = CarvanaUnetModel()
 
     learner = Trainer(fast_dev_run=False, logger=tb_logger, accumulate_grad_batches=2, check_val_every_n_epoch=1,
-                      min_epochs=80, max_epochs=200, gpus=1, checkpoint_callback=cp_cb)
+                      min_epochs=80, max_epochs=200, gpus=1) #, checkpoint_callback=cp_cb)
 
     # # # Run learning rate finder
     # lr_finder = learner.lr_find(model)
