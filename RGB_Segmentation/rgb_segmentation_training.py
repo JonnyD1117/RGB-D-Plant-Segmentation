@@ -87,8 +87,7 @@ class CarvanaUnetModel(LightningModule):
         self.logger.experiment.add_image("GT_Mask", grid_mask, 0)
         self.logger.experiment.add_image("Pred_Mask", grid_pred, 0)
 
-        # self.logger.experiment.add_
-
+        self.logger.log_metrics({"lr": self.learning_rate},)
         # tensorboard_logs = {'train_loss': loss, 'lr': self.learning_rate, 'train_dice': dice_s}
         #
         # output = {
@@ -101,6 +100,13 @@ class CarvanaUnetModel(LightningModule):
         self.log("loss", loss, prog_bar=True) #, "training_loss": loss, "progress_bar": tensorboard_logs, "log": tensorboard_logs)
 
         return loss
+
+    # def training_epoch_end(self):
+    #
+    #     self.logger.experiment.add_scalar()
+
+
+
 
     def validation_step(self, batch, batch_idx):
         """
