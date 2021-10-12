@@ -26,6 +26,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 from pytorch_lightning.callbacks.model_checkpoint import Callback
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.callbacks import LearningRateMonitor
 
 from torchmetrics.functional import dice_score
 from pl_bolts.losses.object_detection import iou_loss
@@ -52,7 +53,7 @@ class CarvanaUnetModel(LightningModule):
         self.ds = None
         self.vs = None
         self.ts = None
-
+        self.reduce_on_plateau = False
         self.loss_criterion = DiceBCELoss()
 
     def forward(self, x):
@@ -88,7 +89,7 @@ class CarvanaUnetModel(LightningModule):
         self.logger.experiment.add_image("GT_Mask", grid_mask, 0)
         self.logger.experiment.add_image("Pred_Mask", grid_pred, 0)
 
-        self.logger.log_metrics({"lr": self.learning_rate},)
+        self.logger.log_metrics({"lr": self.learning_rate})
         # tensorboard_logs = {'train_loss': loss, 'lr': self.learning_rate, 'train_dice': dice_s}
         #
         # output = {
@@ -144,15 +145,14 @@ class CarvanaUnetModel(LightningModule):
         Configures the ADAM optimizer and a Learning-Rate Scheduler
         """
         # Define Optimizer & Learning Rate Scheduler
-        reduce_on_plateau = True
         optimizer = optim.Adam(self.parameters(), lr=self.learning_rate)
 
         # Declare which learning rate scheduler will run
-        if reduce_on_plateau:
+        if self.reduce_on_plateau:
             scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, mode='min', verbose=True)
             return [optimizer], [{'scheduler': scheduler, 'monitor': 'loss'}]
 
-        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
         return [optimizer], [{'scheduler': scheduler}]
 
     def prepare_data(self):
@@ -184,8 +184,10 @@ def main(hparams):
     # cp_cb = ModelCheckpoint(filepath='models/checkpoints/{epoch}-{val_loss:.3f}', save_top_k=-1)
     model = CarvanaUnetModel()
 
+    lr_monitor = LearningRateMonitor(logging_interval='epoch')
+
     learner = Trainer(fast_dev_run=False, logger=tb_logger, accumulate_grad_batches=4, check_val_every_n_epoch=1,
-                      min_epochs=80, max_epochs=200, gpus=1) #, checkpoint_callback=cp_cb)
+                      min_epochs=80, max_epochs=200, gpus=1, callbacks=[lr_monitor]) #, checkpoint_callback=cp_cb)
 
     # # # Run learning rate finder
     # lr_finder = learner.lr_find(model)
