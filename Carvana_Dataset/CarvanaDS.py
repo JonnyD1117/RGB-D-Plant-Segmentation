@@ -9,10 +9,13 @@ from albumentations import (Compose, RandomCrop, Resize, HorizontalFlip, ShiftSc
 
 
 class CarvanaData(Dataset):
-    def __init__(self, root_dir=r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\Carvana_Dataset\data\train", transform=None, image_size=(512, 512)):
+    def __init__(self, root_dir=r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\Carvana_Dataset\data\train", transform=None, image_size=(512, 512), test=False):
 
         # Initialize Directory Tree from current working directory if no directory is provided
-        self.root_dir = root_dir
+        if test:
+            self.root_dir = r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\Carvana_Dataset\data\test"
+        else:
+            self.root_dir = root_dir
 
         # Get Image/Mask Path
         self.img_dir = os.path.join(self.root_dir, 'images')
