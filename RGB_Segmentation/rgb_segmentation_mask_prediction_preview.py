@@ -103,38 +103,43 @@ def get_current_model_checkpoint(root_dir=r"C:\Users\Indy-Windows\Documents\RGB-
     return os.path.join(path, f'epoch={epoch}-step={step}.ckpt')
 
 
-# Define Program Variables
-NUM_SAMPLES = 10
+if __name__ == '__main__':
+    # Parse CLI Arguments
+    parser = ArgumentParser()
+    parser.add_argument('--num-samples', default=5)
+    args = parser.parse_args()
 
-# Declare UNETS
-model = UNet()
-train_model = UNet()
+    # Define Program Variables
+    NUM_SAMPLES = args.num_samples
 
-# Get Trained Model Path
-path = get_current_model_checkpoint()
+    # Declare UNETS
+    model = UNet()
+    train_model = UNet()
 
-# Load Model Checkpoint from Path
-checkpoint = torch.load(path)
-train_model.load_state_dict(checkpoint['state_dict'], strict=False)
+    # Get Trained Model Path
+    path = get_current_model_checkpoint()
 
-# Initialize Validation Dataloader
-validation_dataloader = DataLoader(ValidationData(), shuffle=True, drop_last=True, batch_size=1)
+    # Load Model Checkpoint from Path
+    checkpoint = torch.load(path)
+    train_model.load_state_dict(checkpoint['state_dict'], strict=False)
 
-# Define Loss Criterion
-loss_criterion = DiceBCELoss()
+    # Initialize Validation Dataloader
+    validation_dataloader = DataLoader(ValidationData(), shuffle=True, drop_last=True, batch_size=1)
 
+    # Define Loss Criterion
+    loss_criterion = DiceBCELoss()
 
-for ind, batch in enumerate(validation_dataloader):
-    image, mask = batch
+    for ind, batch in enumerate(validation_dataloader):
+        image, mask = batch
 
-    if ind < NUM_SAMPLES:
-        # Untrained Model Loss
-        y_hat_untrained = model(image)
-        untrained_loss = loss_criterion(y_hat_untrained, mask)
+        if ind < NUM_SAMPLES:
+            # Untrained Model Loss
+            y_hat_untrained = model(image)
+            untrained_loss = loss_criterion(y_hat_untrained, mask)
 
-        # Trained Model
-        y_hat_trained = train_model(image)
-        trained_loss = loss_criterion(y_hat_trained, mask)
+            # Trained Model
+            y_hat_trained = train_model(image)
+            trained_loss = loss_criterion(y_hat_trained, mask)
 
-        plot_img_mask_pred(image, mask, y_hat_untrained, y_hat_trained, untrained_loss, trained_loss)
-    break
+            plot_img_mask_pred(image, mask, y_hat_untrained, y_hat_trained, untrained_loss, trained_loss)
+        break
