@@ -36,7 +36,7 @@ from RGB_Segmentation.off_the_shelf_unet import UNet
 
 model = UNet()
 # print(model.state_dict())
-checkpoint = torch.load(r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\logs\my_model\version_5\checkpoints\epoch=77-step=36971.ckpt")
+checkpoint = torch.load(r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\logs\my_model\version_15\checkpoints\epoch=33-step=8057.ckpt")
 # print(checkpoint['state_dict'])
 model.load_state_dict(checkpoint['state_dict'], strict=False)
 # print(model.state_dict())
@@ -52,14 +52,11 @@ for epoch in range(EPOCHS):
         image, mask = batch
 
         y_hat = model(image)
-
-        print(f"Pred Mask Shape = {y_hat.shape}")
-        print(f"Pred Mask Type = {type(y_hat)}")
         import matplotlib.pyplot as plt
 
         # pred_mask = torch.squeeze(y_hat)
         pred_mask = y_hat[0][0][:][:]
-        pred_mask = torch.sigmoid_(pred_mask) > .5
+        pred_mask = torch.sigmoid_(pred_mask) > .55
         # print(f"Pred Mask Shape Post Squeeze = {pred_mask.shape}")
 
         pred_mask = pred_mask.detach().numpy()
