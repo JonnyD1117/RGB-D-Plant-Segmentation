@@ -23,6 +23,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.profiler import SimpleProfiler, AdvancedProfiler
 
 from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 from pytorch_lightning.callbacks.model_checkpoint import Callback
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
@@ -53,7 +54,7 @@ class CarvanaUnetModel(LightningModule):
         self.ds = None
         self.vs = None
         self.ts = None
-        self.reduce_on_plateau = False
+        self.reduce_on_plateau = True
         self.loss_criterion = DiceBCELoss()
 
     def forward(self, x):
@@ -123,10 +124,11 @@ class CarvanaUnetModel(LightningModule):
             "progress_bar": val_tensorboard_logs,
             "log": val_tensorboard_logs
         }
-
+        self.log("val_loss", val_loss)
         # self.log("loss", val_loss, prog_bar=True)
         # self.log(output)
         # return output
+        return val_loss
 
     # def validation_epoch_end(self, outputs):
     #     """
@@ -149,8 +151,8 @@ class CarvanaUnetModel(LightningModule):
 
         # Declare which learning rate scheduler will run
         if self.reduce_on_plateau:
-            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, mode='min', verbose=True)
-            return [optimizer], [{'scheduler': scheduler, 'monitor': 'loss'}]
+            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, mode='min', verbose=True)
+            return [optimizer], [{'scheduler': scheduler, 'monitor': 'val_loss'}]
 
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
         return [optimizer], [{'scheduler': scheduler}]
@@ -159,7 +161,7 @@ class CarvanaUnetModel(LightningModule):
         """
         Setup the Training, Validation, & Testing Datasets
         """
-        self.ds = CarvanaData()
+        self.ds = CarvanaData(test=False)
         self.vs = ValidationData()
         self.ts = None
 
@@ -181,13 +183,14 @@ class CarvanaUnetModel(LightningModule):
 def main(hparams):
 
     tb_logger = TensorBoardLogger('logs', name='my_model')
+    wandb_logger = WandbLogger('WB_log')
     # cp_cb = ModelCheckpoint(filepath='models/checkpoints/{epoch}-{val_loss:.3f}', save_top_k=-1)
     model = CarvanaUnetModel()
 
     lr_monitor = LearningRateMonitor(logging_interval='epoch')
 
     learner = Trainer(fast_dev_run=False, logger=tb_logger, accumulate_grad_batches=4, check_val_every_n_epoch=1,
-                      min_epochs=80, max_epochs=200, gpus=1, callbacks=[lr_monitor]) #, checkpoint_callback=cp_cb)
+                      min_epochs=80, max_epochs=200, gpus=1, callbacks=[lr_monitor], flush_logs_every_n_steps=500, auto_scale_batch_size=True) #, checkpoint_callback=cp_cb)
 
     # # # Run learning rate finder
     # lr_finder = learner.lr_find(model)
@@ -195,7 +198,7 @@ def main(hparams):
     # model.learning_rate = new_lr
     # print(new_lr)
 
-    model.learning_rate = 0.03
+    model.learning_rate = 0.3
     learner.fit(model)
 
 
