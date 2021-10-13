@@ -7,6 +7,7 @@ This file contains the implementation for previewing the predicted masks from th
 """
 
 import os
+import re
 from argparse import ArgumentParser
 from tqdm import tqdm
 
@@ -88,19 +89,38 @@ def plot_img_mask_pred(image, mask, untrained_pred, trained_pred, no_train_loss,
     plt.show()
 
 
-NUM_SAMPLES = 10
-VERSION = 15
-EPOCH = 44
-STEP = 10664
+def get_current_model_checkpoint(root_dir=r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\logs\my_model"):
+    # Get Version # from logs directory
+    version_chkpt_list = os.listdir(root_dir)
+    version_list = [int(re.findall(r'\d{1,3}', vs)[-1]) for vs in version_chkpt_list]
+    version = max(version_list)
+    # Check Epoch and Steps from Version subdirectory
+    path = os.path.join(root_dir, f"version_{version}\checkpoints")
+    checkpoint_vars = re.findall(r'\d{1,15}', os.listdir(path)[-1])
+    epoch = int(checkpoint_vars[0])
+    step = int(checkpoint_vars[-1])
+    # Return Complete Path
+    return os.path.join(path, f'epoch={epoch}-step={step}.ckpt')
 
+
+# Define Program Variables
+NUM_SAMPLES = 10
+
+# Declare UNETS
 model = UNet()
 train_model = UNet()
-rootdir = r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\logs\my_model"
-path = rootdir + f"\\version_{VERSION}\\checkpoints\\epoch={EPOCH}-step={STEP}.ckpt"
+
+# Get Trained Model Path
+path = get_current_model_checkpoint()
+
+# Load Model Checkpoint from Path
 checkpoint = torch.load(path)
 train_model.load_state_dict(checkpoint['state_dict'], strict=False)
 
+# Initialize Validation Dataloader
 validation_dataloader = DataLoader(ValidationData(), shuffle=True, drop_last=True, batch_size=1)
+
+# Define Loss Criterion
 loss_criterion = DiceBCELoss()
 
 
@@ -118,12 +138,3 @@ for ind, batch in enumerate(validation_dataloader):
 
         plot_img_mask_pred(image, mask, y_hat_untrained, y_hat_trained, untrained_loss, trained_loss)
     break
-
-
-# Train Model Loss
-
-
-
-
-
-
