@@ -120,7 +120,7 @@ if __name__ == '__main__':
     path = get_current_model_checkpoint()
 
     # Load Model Checkpoint from Path
-    checkpoint = torch.load(path)
+    checkpoint = torch.load(r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\old_school_models\model_epoch0.ckpt")
     train_model.load_state_dict(checkpoint['state_dict'], strict=False)
 
     # Initialize Validation Dataloader
@@ -142,4 +142,4 @@ if __name__ == '__main__':
             trained_loss = loss_criterion(y_hat_trained, mask)
 
             plot_img_mask_pred(image, mask, y_hat_untrained, y_hat_trained, untrained_loss, trained_loss)
-        break
+

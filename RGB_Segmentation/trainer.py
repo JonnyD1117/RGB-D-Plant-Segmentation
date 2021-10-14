@@ -10,6 +10,8 @@ import torch
 import torchvision
 from torch import optim
 from torch.utils.data import DataLoader, random_split
+from torch.utils.tensorboard import SummaryWriter
+from torchvision.utils import make_grid
 
 from RGB_Segmentation.off_the_shelf_unet import UNet
 from RGB_Segmentation.bce_dice_loss import DiceBCELoss
@@ -24,6 +26,10 @@ if __name__ == '__main__':
     img_height = 517
     img_width = 517
 
+    # Initialize TB Logging
+
+    writer = SummaryWriter(log_dir=r'C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\old_school_logs')
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Define Model
@@ -35,14 +41,17 @@ if __name__ == '__main__':
     loss_criterion = DiceBCELoss()
 
     # Create DataLoader
-    carvana_dl = DataLoader(TestData(), batch_size, shuffle=True, num_workers=4, drop_last=True)
+    carvana_dl = DataLoader(CarvanaData(), batch_size, shuffle=True, num_workers=4, drop_last=True)
     validation_dl = DataLoader(ValidationData(), val_batch_size, shuffle=False, num_workers=4, drop_last=True)
 
     # Loop Through All Epochs
-    for epoch in tqdm(range(EPOCHS)):
+    for epoch in range(EPOCHS):
+        print()
+        print(f"################################################")
+        print(f"Epoch = {epoch}")
+        print(f"################################################")
         # Loop Through Each Batch
         for image, mask in tqdm(carvana_dl):
-            print(f"Image Size = {image.shape}")
             # Send Training Data to GPU
             image = image.to(device)
             mask = mask.to(device)
@@ -52,6 +61,16 @@ if __name__ == '__main__':
 
             # Compute Loss
             loss = loss_criterion(pred, mask)
+
+            # Tensorboard Logging
+            writer.add_scalar('train_loss', loss)
+            writer.add_graph(model, image)
+            grid_img = make_grid(image)
+            grid_mask = make_grid(mask)
+            grid_pred = make_grid(pred)
+            writer.add_image('image', grid_img)
+            writer.add_image('mask', grid_mask)
+            writer.add_image('prediction', grid_pred)
 
             # Zero_grad/Backprop Loss/ Step Optimizer
             optimizer.zero_grad()
@@ -66,20 +85,19 @@ if __name__ == '__main__':
 
         torch.save(checkpoint, f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_models\\model_epoch{epoch}.ckpt')
 
-        val_loss = []
-        # Compute Validation Loss
-        for val_img, val_mask in tqdm(validation_dl):
-
-            print(f"Validation Image Size = {val_img.shape}")
-            # Send Training Data to GPU
-            val_img = val_img.to(device)
-            val_mask = val_mask.to(device)
-
-            # UNET Forward Pass
-            val_pred = model(val_img)
-
-            # Compute Loss
-            val_loss.append(loss_criterion(val_pred, val_mask))
-
-        print(f"Mean Validation Loss = {torch.mean(val_loss)} ")
+        # val_loss = []
+        # # Compute Validation Loss
+        # for val_img, val_mask in tqdm(validation_dl):
+        #
+        #     # Send Training Data to GPU
+        #     val_img = val_img.to(device)
+        #     val_mask = val_mask.to(device)
+        #
+        #     # UNET Forward Pass
+        #     val_pred = model(val_img)
+        #
+        #     # Compute Loss
+        #     val_loss.append(loss_criterion(val_pred, val_mask))
+        #
+        # print(f"Mean Validation Loss = {torch.mean(val_loss)} ")
 
