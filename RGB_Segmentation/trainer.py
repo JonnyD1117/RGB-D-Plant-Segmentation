@@ -21,14 +21,14 @@ if __name__ == '__main__':
     # Define Training Parameters
     EPOCHS = 10
     lr = .003
-    batch_size = 2
+    batch_size = 4
     val_batch_size = 1
     img_height = 517
     img_width = 517
 
     # Initialize TB Logging
-
-    writer = SummaryWriter(log_dir=r'C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\old_school_logs')
+    version_num = 5
+    writer = SummaryWriter(log_dir= f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_logs\\version{version_num}')
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -43,6 +43,8 @@ if __name__ == '__main__':
     # Create DataLoader
     carvana_dl = DataLoader(CarvanaData(), batch_size, shuffle=True, num_workers=4, drop_last=True)
     validation_dl = DataLoader(ValidationData(), val_batch_size, shuffle=False, num_workers=4, drop_last=True)
+
+    global_time_step = 0
 
     # Loop Through All Epochs
     for epoch in range(EPOCHS):
@@ -63,19 +65,21 @@ if __name__ == '__main__':
             loss = loss_criterion(pred, mask)
 
             # Tensorboard Logging
-            writer.add_scalar('train_loss', loss)
-            writer.add_graph(model, image)
-            grid_img = make_grid(image)
-            grid_mask = make_grid(mask)
-            grid_pred = make_grid(pred)
-            writer.add_image('image', grid_img)
-            writer.add_image('mask', grid_mask)
-            writer.add_image('prediction', grid_pred)
+            writer.add_scalar('train_loss', loss, global_step=global_time_step)
+            # writer.add_graph(model, image)
+            # grid_img = make_grid(image)
+            # grid_mask = make_grid(mask)
+            # grid_pred = make_grid(pred)
+            # writer.add_image('image', grid_img)
+            # writer.add_image('mask', grid_mask)
+            # writer.add_image('prediction', grid_pred)
 
             # Zero_grad/Backprop Loss/ Step Optimizer
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+
+            global_time_step += 1
 
         # Save Model Checkpoint
         checkpoint = {
