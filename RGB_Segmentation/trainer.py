@@ -9,6 +9,7 @@ from Carvana_Dataset.Test_DS import TestData
 import torch
 import torchvision
 from torch import optim
+from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import make_grid
@@ -37,6 +38,7 @@ if __name__ == '__main__':
 
     # Define Optimizer
     optimizer = optim.Adam(model.parameters(), lr=lr)
+    scheduler = StepLR(optimizer, step_size=5, gamma=.1)
     # Define Loss Function
     loss_criterion = DiceBCELoss()
 
@@ -80,6 +82,11 @@ if __name__ == '__main__':
             optimizer.step()
 
             global_time_step += 1
+
+        scheduler.step()
+
+
+
 
         # Save Model Checkpoint
         checkpoint = {
