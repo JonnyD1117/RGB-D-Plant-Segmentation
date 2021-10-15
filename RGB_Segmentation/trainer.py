@@ -20,7 +20,7 @@ from RGB_Segmentation.bce_dice_loss import DiceBCELoss
 
 if __name__ == '__main__':
     # Define Training Parameters
-    EPOCHS = 200
+    EPOCHS = 10
     lr = .3
     batch_size = 5
     val_batch_size = 1
@@ -28,10 +28,12 @@ if __name__ == '__main__':
     img_width = 517
 
     # Initialize TB Logging
-    version_num = 7
+    version_num = 10
     writer = SummaryWriter(log_dir= f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_logs\\version{version_num}')
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    print(f'Current Device = {device}')
 
     # Define Model
     model = UNet().to(device)
@@ -41,7 +43,7 @@ if __name__ == '__main__':
     scheduler = StepLR(optimizer, step_size=5, gamma=.1)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
     # Define Loss Function
-    loss_criterion = DiceBCELoss()
+    loss_criterion = DiceBCELoss().to(device)
 
     # Create DataLoader
     carvana_dl = DataLoader(CarvanaData(), batch_size, shuffle=True, num_workers=4, drop_last=True)
@@ -56,6 +58,7 @@ if __name__ == '__main__':
         print(f"Epoch = {epoch}")
         print(f"################################################")
         # Loop Through Each Batch
+        model = model.train()
         for image, mask in tqdm(carvana_dl):
             # Send Training Data to GPU
             image = image.to(device)
@@ -86,30 +89,32 @@ if __name__ == '__main__':
 
         scheduler.step(loss)
 
-
-
-
-        # Save Model Checkpoint
-        checkpoint = {
-            "state_dict": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-            }
-
-        torch.save(checkpoint, f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_models\\model_epoch{epoch}.ckpt')
-
-        # val_loss = []
-        # # Compute Validation Loss
-        # for val_img, val_mask in tqdm(validation_dl):
+        # # Save Model Checkpoint
+        # checkpoint = {
+        #     "state_dict": model.state_dict(),
+        #     "optimizer": optimizer.state_dict(),
+        #     }
         #
-        #     # Send Training Data to GPU
-        #     val_img = val_img.to(device)
-        #     val_mask = val_mask.to(device)
-        #
-        #     # UNET Forward Pass
-        #     val_pred = model(val_img)
-        #
-        #     # Compute Loss
-        #     val_loss.append(loss_criterion(val_pred, val_mask))
-        #
-        # print(f"Mean Validation Loss = {torch.mean(val_loss)} ")
+        # torch.save(checkpoint, f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_models\\model_epoch{epoch}.ckpt')
+        with torch.no_grad():
+            mean_val_loss = 0
+            val_ctr = 1.0
+            # Compute Validation Loss
+            for val_img, val_mask in tqdm(validation_dl):
+                model = model.eval()
+                # Send Training Data to GPU
+                val_img = val_img.to(device)
+                val_mask = val_mask.to(device)
+
+                # UNET Forward Pass
+                val_pred = model(val_img)
+
+                # Compute Loss
+                val_loss = loss_criterion(val_pred, val_mask)
+
+                mean_val_loss = mean_val_loss + (val_loss - mean_val_loss)/val_ctr
+                val_ctr += 1
+
+            writer.add_scalar('validation_loss', mean_val_loss, global_step=epoch)
+
 
