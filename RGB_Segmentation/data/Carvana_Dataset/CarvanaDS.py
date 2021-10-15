@@ -9,11 +9,11 @@ from albumentations import (Compose, RandomCrop, Resize, HorizontalFlip, ShiftSc
 
 
 class CarvanaData(Dataset):
-    def __init__(self, root_dir=r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\Carvana_Dataset\data\train", transform=None, image_size=(512, 512), test=False):
+    def __init__(self, root_dir=r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\data\Carvana_Dataset\data\train", transform=None, image_size=(512, 512), test=False):
 
         # Initialize Directory Tree from current working directory if no directory is provided
         if test:
-            self.root_dir = r"/RGB_Segmentation/data/Carvana_Dataset/data/test"
+            self.root_dir = r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\data\Carvana_Dataset\data\test"
         else:
             self.root_dir = root_dir
 
