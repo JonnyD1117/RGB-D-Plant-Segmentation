@@ -9,7 +9,7 @@ from Carvana_Dataset.Test_DS import TestData
 import torch
 import torchvision
 from torch import optim
-from torch.optim.lr_scheduler import StepLR
+from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import make_grid
@@ -20,15 +20,15 @@ from RGB_Segmentation.bce_dice_loss import DiceBCELoss
 
 if __name__ == '__main__':
     # Define Training Parameters
-    EPOCHS = 10
-    lr = .003
-    batch_size = 4
+    EPOCHS = 200
+    lr = .3
+    batch_size = 5
     val_batch_size = 1
     img_height = 517
     img_width = 517
 
     # Initialize TB Logging
-    version_num = 5
+    version_num = 7
     writer = SummaryWriter(log_dir= f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_logs\\version{version_num}')
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -39,6 +39,7 @@ if __name__ == '__main__':
     # Define Optimizer
     optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = StepLR(optimizer, step_size=5, gamma=.1)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
     # Define Loss Function
     loss_criterion = DiceBCELoss()
 
@@ -83,7 +84,7 @@ if __name__ == '__main__':
 
             global_time_step += 1
 
-        scheduler.step()
+        scheduler.step(loss)
 
 
 
