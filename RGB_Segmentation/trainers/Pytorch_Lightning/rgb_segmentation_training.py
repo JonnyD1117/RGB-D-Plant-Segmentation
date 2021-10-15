@@ -6,36 +6,25 @@ Summary:
 This file contains the pytorch lightning implementation for training a UNET model for RGB carvana dataset
 """
 
-import os
 from argparse import ArgumentParser
 
-from Carvana_Dataset.CarvanaDS import CarvanaData
-from Carvana_Dataset.ValDS import ValidationData
+from RGB_Segmentation.data.Carvana_Dataset.CarvanaDS import CarvanaData
+from RGB_Segmentation.data.Carvana_Dataset.ValDS import ValidationData
 
-import torch
 import torchvision
 from torch import optim
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 
-import pytorch_lightning as pl
 from pytorch_lightning.core import LightningModule
 from pytorch_lightning import Trainer
-from pytorch_lightning.profiler import SimpleProfiler, AdvancedProfiler
 
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
-from pytorch_lightning.callbacks.model_checkpoint import Callback
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks import LearningRateMonitor
-
-from torchmetrics.functional import dice_score
-from pl_bolts.losses.object_detection import iou_loss
 
 # from RGB_Segmentation.unet import UNet
 from RGB_Segmentation.off_the_shelf_unet import UNet
-from RGB_Segmentation.dice_loss import DiceLoss
-from RGB_Segmentation.bce_dice_loss import DiceBCELoss
+from RGB_Segmentation.models.losses.bce_dice_loss import DiceBCELoss
 
 
 class CarvanaUnetModel(LightningModule):

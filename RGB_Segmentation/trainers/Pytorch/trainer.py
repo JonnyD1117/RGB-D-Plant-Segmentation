@@ -9,7 +9,7 @@ from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from RGB_Segmentation.models.unets.off_the_shelf_unet import UNet
+from RGB_Segmentation.models.unets.off_the_shelf_unet_w_sigmoid import UNet
 from RGB_Segmentation.models.losses.bce_dice_loss import DiceBCELoss
 
 
