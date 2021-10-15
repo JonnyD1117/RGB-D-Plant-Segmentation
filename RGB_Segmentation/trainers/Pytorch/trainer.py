@@ -9,13 +9,13 @@ from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from RGB_Segmentation.models.unets.off_the_shelf_unet import UNet
+from RGB_Segmentation.models.unets.off_the_shelf_unet_w_sigmoid import UNet
 from RGB_Segmentation.models.losses.bce_dice_loss import DiceBCELoss
 
 
 if __name__ == '__main__':
     # Define Training Parameters
-    EPOCHS = 30
+    EPOCHS = 10
     lr = .3
     batch_size = 5
     val_batch_size = 1
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     img_width = 517
 
     # Initialize TB Logging
-    version_num = 8
+    version_num = 10
     writer = SummaryWriter(log_dir= f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_logs\\version{version_num}')
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -84,13 +84,13 @@ if __name__ == '__main__':
 
         scheduler.step(loss)
 
-        # Save Model Checkpoint
-        checkpoint = {
-            "state_dict": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-            }
-
-        torch.save(checkpoint, f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_models\\model_epoch{epoch}.ckpt')
+        # # Save Model Checkpoint
+        # checkpoint = {
+        #     "state_dict": model.state_dict(),
+        #     "optimizer": optimizer.state_dict(),
+        #     }
+        #
+        # torch.save(checkpoint, f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_models\\model_epoch{epoch}.ckpt')
         with torch.no_grad():
             mean_val_loss = 0
             val_ctr = 1.0
@@ -111,6 +111,5 @@ if __name__ == '__main__':
                 val_ctr += 1
 
             writer.add_scalar('validation_loss', mean_val_loss, global_step=epoch)
-            writer.add_scalar('learning_rate', lr, global_step=epoch)
 
 

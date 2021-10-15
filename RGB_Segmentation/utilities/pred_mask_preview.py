@@ -9,24 +9,17 @@ This file contains the implementation for previewing the predicted masks from th
 import os
 import re
 from argparse import ArgumentParser
-from tqdm import tqdm
 
-from Carvana_Dataset.CarvanaDS import CarvanaData
-from Carvana_Dataset.ValDS import ValidationData
+from RGB_Segmentation.data.Carvana_Dataset.ValDS import ValidationData
 
 import torch
-import torchvision
-from torch import optim
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
-
-from torchmetrics.functional import dice_score
-from pl_bolts.losses.object_detection import iou_loss
 
 # from RGB_Segmentation.unet import UNet
 # from RGB_Segmentation.off_the_shelf_unet import UNet
-from RGB_Segmentation.off_the_shelf_unet_w_sigmoid import UNet
-from RGB_Segmentation.bce_dice_loss import DiceBCELoss
+from RGB_Segmentation.models.unets.off_the_shelf_unet_w_sigmoid import UNet
+from RGB_Segmentation.models.losses.bce_dice_loss import DiceBCELoss
 
 
 def plot_img_mask_pred(image, mask, untrained_pred, trained_pred, no_train_loss, train_loss):
