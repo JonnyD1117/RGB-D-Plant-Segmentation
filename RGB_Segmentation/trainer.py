@@ -1,7 +1,7 @@
 from tqdm import tqdm
 
-from RGB_Segmentation.data.Carvana_Dataset.CarvanaDS import CarvanaData
-from RGB_Segmentation.data.Carvana_Dataset.ValDS import ValidationData
+from data.Carvana_Dataset.CarvanaDS import CarvanaData
+from data.Carvana_Dataset.ValDS import ValidationData
 
 import torch
 from torch import optim
