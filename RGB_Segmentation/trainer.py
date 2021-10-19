@@ -1,4 +1,5 @@
-from tqdm import tqdm
+from tqdm.notebook import tqdm
+import os
 
 from data.Carvana_Dataset.CarvanaDS import CarvanaData
 from data.Carvana_Dataset.ValDS import ValidationData
@@ -9,8 +10,8 @@ from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from RGB_Segmentation.models.unets.off_the_shelf_unet import UNet
-from RGB_Segmentation.models.losses.bce_dice_loss import DiceBCELoss
+from models.unets.off_the_shelf_unet import UNet
+from models.losses.bce_dice_loss import DiceBCELoss
 
 
 if __name__ == '__main__':
@@ -23,8 +24,10 @@ if __name__ == '__main__':
     img_width = 517
 
     # Initialize TB Logging
-    version_num = 8
-    # writer = SummaryWriter(log_dir= f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_logs\\version{version_num}')
+    version_num = 1
+    log_path = f"\\content\\drive\\MyDrive\\Carvana_Dataset\\logs\\version{version_num}"
+    # os.mkdir(log_path)
+    writer = SummaryWriter(log_dir=log_path)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -35,7 +38,7 @@ if __name__ == '__main__':
 
     # Define Optimizer
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = StepLR(optimizer, step_size=5, gamma=.1)
+    # scheduler = StepLR(optimizer, step_size=5, gamma=.1)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
     # Define Loss Function
     loss_criterion = DiceBCELoss().to(device)
@@ -52,6 +55,9 @@ if __name__ == '__main__':
         print(f"################################################")
         print(f"Epoch = {epoch}")
         print(f"################################################")
+        print()
+        check_path = log_path + f'\\checkpoints\\model_epoch{epoch}.ckpt'
+
         # Loop Through Each Batch
         model = model.train()
         for image, mask in tqdm(carvana_dl):
@@ -90,7 +96,7 @@ if __name__ == '__main__':
             "optimizer": optimizer.state_dict(),
             }
 
-        # torch.save(checkpoint, f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_models\\model_epoch{epoch}.ckpt')
+        torch.save(checkpoint, check_path)
         with torch.no_grad():
             mean_val_loss = 0
             val_ctr = 1.0
