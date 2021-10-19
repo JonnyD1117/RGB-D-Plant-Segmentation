@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     # Initialize TB Logging
     version_num = 8
-    writer = SummaryWriter(log_dir= f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_logs\\version{version_num}')
+    # writer = SummaryWriter(log_dir= f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_logs\\version{version_num}')
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -90,7 +90,7 @@ if __name__ == '__main__':
             "optimizer": optimizer.state_dict(),
             }
 
-        torch.save(checkpoint, f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_models\\model_epoch{epoch}.ckpt')
+        # torch.save(checkpoint, f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\old_school_models\\model_epoch{epoch}.ckpt')
         with torch.no_grad():
             mean_val_loss = 0
             val_ctr = 1.0
