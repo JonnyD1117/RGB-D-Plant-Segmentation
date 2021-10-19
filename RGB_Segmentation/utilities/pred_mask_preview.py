@@ -110,10 +110,10 @@ if __name__ == '__main__':
     train_model = UNet()
 
     # Get Trained Model Path
-    path = get_current_model_checkpoint()
+    # path = get_current_model_checkpoint()
 
     # Load Model Checkpoint from Path
-    checkpoint = torch.load(r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\old_school_models\model_epoch0.ckpt")
+    checkpoint = torch.load(r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\logs\pytorch_logs\version2\checkpoints\v2_model_epoch78.ckpt")
     train_model.load_state_dict(checkpoint['state_dict'], strict=False)
 
     # Initialize Validation Dataloader
