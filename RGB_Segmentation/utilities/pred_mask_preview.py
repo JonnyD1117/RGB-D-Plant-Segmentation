@@ -9,12 +9,14 @@ This file contains the implementation for previewing the predicted masks from th
 import os
 import re
 from argparse import ArgumentParser
+import numpy as np
 
 from RGB_Segmentation.data.Carvana_Dataset.ValDS import ValidationData
 
 import torch
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import ImageGrid
 
 # from RGB_Segmentation.unet import UNet
 # from RGB_Segmentation.off_the_shelf_unet import UNet
@@ -82,18 +84,28 @@ def plot_img_mask_pred(image, mask, untrained_pred, trained_pred, no_train_loss,
     plt.show()
 
 
-def get_current_model_checkpoint(root_dir=r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\logs\my_model"):
+def get_current_model_checkpoint(root_dir=r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\logs\pytorch_logs", epoch_num=None):
     # Get Version # from logs directory
-    version_chkpt_list = os.listdir(root_dir)
-    version_list = [int(re.findall(r'\d{1,3}', vs)[-1]) for vs in version_chkpt_list]
+    version_list = os.listdir(root_dir)
+    version_list = [int(re.findall(r'\d{1,3}', vs)[-1]) for vs in version_list]
     version = max(version_list)
-    # Check Epoch and Steps from Version subdirectory
-    path = os.path.join(root_dir, f"version_{version}\checkpoints")
-    checkpoint_vars = re.findall(r'\d{1,15}', os.listdir(path)[-1])
-    epoch = int(checkpoint_vars[0])
-    step = int(checkpoint_vars[-1])
-    # Return Complete Path
-    return os.path.join(path, f'epoch={epoch}-step={step}.ckpt')
+    # Check Epoch from Version subdirectory
+    version_path = os.path.join(root_dir, f"version{version}\\checkpoints")
+
+    if epoch_num is None:
+        max_epoch = 0
+        for item in os.listdir(version_path):
+            output = re.findall(r'\d{1,}', item)
+            v_num = int(output[0])
+            e_num = int(output[1])
+
+            if e_num > max_epoch:
+                max_epoch = e_num
+    else:
+        max_epoch = epoch_num
+
+    model_path = os.path.join(version_path, f"v{version}_model_epoch{max_epoch}.ckpt")
+    return model_path
 
 
 if __name__ == '__main__':
@@ -111,9 +123,8 @@ if __name__ == '__main__':
 
     # Get Trained Model Path
     path = get_current_model_checkpoint()
-
     # Load Model Checkpoint from Path
-    checkpoint = torch.load(r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\old_school_models\model_epoch0.ckpt")
+    checkpoint = torch.load(path)
     train_model.load_state_dict(checkpoint['state_dict'], strict=False)
 
     # Initialize Validation Dataloader
@@ -123,16 +134,23 @@ if __name__ == '__main__':
     loss_criterion = DiceBCELoss()
 
     for ind, batch in enumerate(validation_dataloader):
+        if ind > NUM_SAMPLES:
+            break
+
         image, mask = batch
+        # Untrained Model Loss
+        y_hat_untrained = model(image)
+        untrained_loss = loss_criterion(y_hat_untrained, mask)
 
-        if ind < NUM_SAMPLES:
-            # Untrained Model Loss
-            y_hat_untrained = model(image)
-            untrained_loss = loss_criterion(y_hat_untrained, mask)
+        # Trained Model
+        y_hat_trained = train_model(image)
+        trained_loss = loss_criterion(y_hat_trained, mask)
 
-            # Trained Model
-            y_hat_trained = train_model(image)
-            trained_loss = loss_criterion(y_hat_trained, mask)
+        img = torch.squeeze(image)
+        msk_list = torch.squeeze(mask)
+        ut_pred = torch.squeeze(y_hat_untrained)
+        t_pred = torch.squeeze(y_hat_trained)
 
-            plot_img_mask_pred(image, mask, y_hat_untrained, y_hat_trained, untrained_loss, trained_loss)
+        plot_img_mask_pred(image, mask, y_hat_untrained, y_hat_trained, untrained_loss, trained_loss)
+
 
