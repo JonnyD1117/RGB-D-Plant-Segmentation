@@ -9,6 +9,7 @@ This file contains the implementation for previewing the predicted masks from th
 import os
 import re
 from argparse import ArgumentParser
+from pathlib import Path
 import numpy as np
 
 from RGB_Segmentation.data.Carvana_Dataset.ValDS import ValidationData
@@ -84,7 +85,9 @@ def plot_img_mask_pred(image, mask, untrained_pred, trained_pred, no_train_loss,
     plt.show()
 
 
-def get_current_model_checkpoint(root_dir=r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\logs\pytorch_logs", epoch_num=None):
+
+def get_current_model_checkpoint(root_dir=os.path.join(Path(__file__).parents[1], "logs\\pytorch_logs"), epoch_num=None):
+    print(f"Root directory = {root_dir}")
     # Get Version # from logs directory
     version_list = os.listdir(root_dir)
     version_list = [int(re.findall(r'\d{1,3}', vs)[-1]) for vs in version_list]

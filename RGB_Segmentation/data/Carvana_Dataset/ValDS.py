@@ -1,6 +1,7 @@
 import os
 import cv2
 from PIL import Image
+from pathlib import Path
 from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms, datasets
 import torchvision.transforms.functional as tf
@@ -8,7 +9,7 @@ from albumentations import (Compose, RandomCrop, Resize, HorizontalFlip, ShiftSc
 
 
 class ValidationData(Dataset):
-    def __init__(self, root_dir=r"C:\Users\Indy-Windows\Documents\RGB-D-Plant-Segmentation\RGB_Segmentation\data\Carvana_Dataset\data\val", image_size=(512, 512)):
+    def __init__(self, root_dir=os.path.join(Path(__file__).parents[0], "data\\val"), image_size=(512, 512)):
 
         # Initialize Directory Tree from current working directory if no directory is provided
         self.root_dir = root_dir

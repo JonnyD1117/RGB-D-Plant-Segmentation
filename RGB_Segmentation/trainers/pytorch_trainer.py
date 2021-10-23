@@ -1,5 +1,8 @@
+import os
+import re
 from tqdm import tqdm
-
+from pathlib import Path
+from RGB_Segmentation.utilities.logging_utils import setup_version_logs
 from RGB_Segmentation.data.Carvana_Dataset.CarvanaDS import CarvanaData
 from RGB_Segmentation.data.Carvana_Dataset.ValDS import ValidationData
 
@@ -22,9 +25,14 @@ if __name__ == '__main__':
     img_height = 517
     img_width = 517
 
+    # Paths
+    rgb_seg_base_path = Path(__file__).parents[1]
+    log_path = os.path.join(rgb_seg_base_path, f'logs\\pytorch_logs')
+
     # Initialize TB Logging
-    version_num = 2
-    writer = SummaryWriter(log_dir= f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\logs\\pytorch_logs\\version{version_num}')
+    version_num, version_dir, checkpoint_dir = setup_version_logs(rgb_seg_base_path, log_path)
+
+    writer = SummaryWriter(log_dir=version_dir)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -67,13 +75,6 @@ if __name__ == '__main__':
 
             # Tensorboard Logging
             writer.add_scalar('train_loss', loss, global_step=global_time_step)
-            # writer.add_graph(model, image)
-            # grid_img = make_grid(image)
-            # grid_mask = make_grid(mask)
-            # grid_pred = make_grid(pred)
-            # writer.add_image('image', grid_img)
-            # writer.add_image('mask', grid_mask)
-            # writer.add_image('prediction', grid_pred)
 
             # Zero_grad/Backprop Loss/ Step Optimizer
             optimizer.zero_grad()
@@ -90,7 +91,8 @@ if __name__ == '__main__':
             "optimizer": optimizer.state_dict(),
             }
 
-        torch.save(checkpoint, f'C:\\Users\\Indy-Windows\\Documents\\RGB-D-Plant-Segmentation\\RGB_Segmentation\\logs\\pytorch_logs\\version{version_num}\\checkpoints\\v{version_num}_model_epoch{epoch}.ckpt')
+        torch.save(checkpoint, os.path.join(checkpoint_dir, f"v{version_num}_model_epoch{epoch}.ckpt"))
+
         with torch.no_grad():
             mean_val_loss = 0
             val_ctr = 1.0
