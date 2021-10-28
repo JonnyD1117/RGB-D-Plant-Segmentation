@@ -11,4 +11,4 @@ __pycache__/
 *.jpg
 *.png
 .idea/*
-!/RGB_Segmentation/tests/data/
+!RGB-D-Plant-Segmentation/RGB_Segmentation/tests/data/*
