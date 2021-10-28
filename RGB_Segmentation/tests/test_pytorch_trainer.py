@@ -47,23 +47,61 @@ class TestPytorchTrainer(unittest.TestCase):
         # Convert to tensor
         image, mask = tf.to_tensor(r_img), tf.to_tensor(r_msk)
 
+        # Instantiate Carvana DataSet & DataLoader
+        carv_ds = CarvanaData()
+        carvana_dl = DataLoader(carv_ds)
+        car_iter = iter(carvana_dl)
+
+        # DataLoader Img & Mask
+        dl_img, dl_msk = next(car_iter)
+
+        # Account for Batch Dimension
+        dl_img = torch.squeeze(dl_img, dim=0)
+        dl_msk = torch.squeeze(dl_msk, dim=0)
+
+        # Test Shape & Type are Consistent
+        self.assertEqual(type(image), type(dl_img))
+        self.assertEqual(type(mask), type(dl_msk))
+        self.assertEqual(image.shape, dl_img.shape)
+        self.assertEqual(mask.shape, dl_msk.shape)
+
+    def test_resize_n_recrop(self):
+        # Image & Mask Paths
+        test_data_path = os.getcwd() + r"\data\test_image_mask_processing"
+        img_path = os.path.join(test_data_path, r'0cdf5b5d0ce1_01.jpg')
+        mask_path = os.path.join(test_data_path, r'0cdf5b5d0ce1_01_mask.jpg')
+
+        # Image Dimensions
+        image_size = [512, 512]
+
+        # Use OpenCV to read Image/Masks from given paths
+        image = cv2.imread(img_path)
+        mask = cv2.imread(mask_path, 0)
+
+        image, mask = Image.fromarray(image), Image.fromarray(mask)
+        # Resize the Img & Mask
+        r_img, r_msk = tf.resize(image, image_size), tf.resize(mask, image_size)
+
+        # Convert to tensor
+        image, mask = tf.to_tensor(r_img), tf.to_tensor(r_msk)
 
         # Instantiate Carvana DataSet & DataLoader
         carv_ds = CarvanaData()
         carvana_dl = DataLoader(carv_ds)
         car_iter = iter(carvana_dl)
 
+        # DataLoader Img & Mask
         dl_img, dl_msk = next(car_iter)
 
-        print(f"Resized Image Dims = {type(image)}")
-        print(f"Resized Mask Dims = {type(mask)}")
-        print(f"DL Image Dims = {type(dl_img)}")
-        print(f"DL Mask Dims = {type(dl_msk)}")
+        # Account for Batch Dimension
+        dl_img = torch.squeeze(dl_img, dim=0)
+        dl_msk = torch.squeeze(dl_msk, dim=0)
 
-        self.assertEqual(True, False)
-
-    def test_resize_n_recrop(self):
-        pass
+        # Test Shape & Type are Consistent
+        self.assertEqual(type(image), type(dl_img))
+        self.assertEqual(type(mask), type(dl_msk))
+        self.assertEqual(image.shape, dl_img.shape)
+        self.assertEqual(mask.shape, dl_msk.shape)
 
     def test_image_normalization(self):
         pass
