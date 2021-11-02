@@ -12,14 +12,15 @@ from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from RGB_Segmentation.models.unets.off_the_shelf_unet_w_sigmoid import UNet
+# from RGB_Segmentation.models.unets.off_the_shelf_unet_w_sigmoid import UNet
 from RGB_Segmentation.models.losses.bce_dice_loss import DiceBCELoss
+from RGB_Segmentation.models.unets.off_the_shelf_unet import UNet
 
 
 if __name__ == '__main__':
     # Define Training Parameters
     EPOCHS = 200
-    lr = .3
+    lr = .003
     batch_size = 10
     val_batch_size = 1
     img_height = 517
@@ -43,7 +44,7 @@ if __name__ == '__main__':
 
     # Define Optimizer
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = StepLR(optimizer, step_size=5, gamma=.1)
+    # scheduler = StepLR(optimizer, step_size=5, gamma=.1)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
     # Define Loss Function
     loss_criterion = DiceBCELoss().to(device)

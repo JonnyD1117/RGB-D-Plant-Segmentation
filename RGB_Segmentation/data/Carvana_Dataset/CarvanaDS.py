@@ -3,6 +3,7 @@ import cv2
 from pathlib import Path
 import numpy as np
 from PIL import Image
+import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms, datasets
 import torchvision.transforms.functional as tf
@@ -51,34 +52,6 @@ class CarvanaData(Dataset):
             ], p=.35)
         ])
 
-    def resize_crop_transform(self, image, mask, normalize=False):
-        """
-        Applies Random Crop/Resize Transform to Image/Mask Tuple.
-        This operation requires that both the mask and the image
-        are transformed identically.
-        :param normalize: (applies normalization if True)
-        :param image:
-        :param mask:
-        :return: cropped & resized image/mask Pytorch tensors
-        """
-        # Define Random Seeds for Image/Mask Resize/Crop transform
-        seed_top = np.random.randint(0, 568)
-        seed_left = np.random.randint(0, 1408)
-
-        # Apply random resize/crop transform to both image/mask
-        image = tf.resized_crop(image, seed_top, seed_left, 512, 512, [self.image_height, self.image_width])
-        mask = tf.resized_crop(mask, seed_top, seed_left, 512, 512, [self.image_height, self.image_width])
-
-        # Convert to tensor
-        image = tf.to_tensor(image)
-        mask = tf.to_tensor(mask)
-
-        # Optional Image Normalization
-        if normalize:
-            normalized_img = tf.normalize(image, [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-            return normalized_img, mask
-        return image, mask
-
     def __len__(self):
         """
         Define the length of the dataset.
@@ -98,28 +71,24 @@ class CarvanaData(Dataset):
         img_path = os.path.join(self.img_dir, self.img_list[item])
         mask_path = os.path.join(self.mask_dir, self.mask_list[item])
 
-        # img = Image.open(img_path)
-        # mask = Image.open(mask_path).convert('L')
-
         # Use OpenCV to read Image/Masks from given paths
-        image = cv2.imread(img_path)
-        mask = cv2.imread(mask_path, 0)
+        img = cv2.imread(img_path)
+        msk = cv2.imread(mask_path, 0)
 
-        # Apply Custom Transform
         if self.transform is not None:
-            augment = self.transform(image=image, mask=mask)
-            image, mask = augment['image'], augment['mask']
+            # augment = self.album_transform(image=image, mask=mask)
+            augment = self.transform(image=img, mask=msk)
+            img, msk = augment['image'], augment['mask']
 
-            image, mask = Image.fromarray(image), Image.fromarray(mask)
-            image, mask = self.resize_crop_transform(image, mask)
-            return image, mask
-        # Apply Default Transform
-        else:
-            augment = self.album_transform(image=image, mask=mask)
-            image, mask = augment['image'], augment['mask']
-            image, mask = Image.fromarray(image), Image.fromarray(mask)
-            image, mask = self.resize_crop_transform(image, mask)
-            return image, mask
+        # Convert & Resize Image & Mask
+        img, msk = Image.fromarray(img), Image.fromarray(msk)
+        image_resized = tf.resize(img=img, size=[self.image_height, self.image_width])
+        mask_resized = tf.resize(img=msk, size=[self.image_height, self.image_width])
+
+        # Normalize Image but NOT mask (implicit in applied transforms)
+        image_ten = tf.to_tensor(image_resized).float()
+        mask_ten = tf.pil_to_tensor(mask_resized).float()
+        return image_ten, mask_ten
 
 
 def show_batched_images(num_images=10):
@@ -167,10 +136,44 @@ def show_batched_masks(num_masks=10):
             break
 
 
+def resize_crop_transform(self, image, mask, normalize=False):
+       """
+       Applies Random Crop/Resize Transform to Image/Mask Tuple.
+       This operation requires that both the mask and the image
+       are transformed identically.
+       :param normalize: (applies normalization if True)
+       :param image:
+       :param mask:
+       :return: cropped & resized image/mask Pytorch tensors
+       """
+       # Define Random Seeds for Image/Mask Resize/Crop transform
+       seed_top = np.random.randint(0, 568)
+       seed_left = np.random.randint(0, 1408)
+
+       # Apply random resize/crop transform to both image/mask
+       image = tf.resized_crop(image, seed_top, seed_left, 512, 512, [self.image_height, self.image_width])
+       mask = tf.resized_crop(mask, seed_top, seed_left, 512, 512, [self.image_height, self.image_width])
+
+       # Convert to tensor
+       image = tf.to_tensor(image)
+       mask = tf.to_tensor(mask)
+
+       # Optional Image Normalization
+       if normalize:
+           normalized_img = tf.normalize(image, [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+           return normalized_img, mask
+       return image, mask
+
+
 if __name__ == '__main__':
 
-    # show_batched_images()
-    show_batched_masks()
+    c_ds = CarvanaData()
+    dl = DataLoader(c_ds, batch_size=1, shuffle=True)
 
+    for image, mask in dl:
+
+        print(f"Image Shape = {image.shape}, type = {type(image)}, min = {torch.min(image)} max  = {torch.max(image)}")
+        print(f"Mask Shape = {mask.shape}, type = {type(mask)}, min = {torch.min(mask)} max  = {torch.max(mask)}")
+        break
 
 
