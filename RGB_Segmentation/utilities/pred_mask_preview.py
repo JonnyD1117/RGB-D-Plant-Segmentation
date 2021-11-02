@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
 
 # from RGB_Segmentation.unet import UNet
-# from RGB_Segmentation.off_the_shelf_unet import UNet
-from RGB_Segmentation.models.unets.off_the_shelf_unet_w_sigmoid import UNet
+from RGB_Segmentation.models.unets.off_the_shelf_unet import UNet
+# from RGB_Segmentation.models.unets.off_the_shelf_unet_w_sigmoid import UNet
 from RGB_Segmentation.models.losses.bce_dice_loss import DiceBCELoss
 
 
