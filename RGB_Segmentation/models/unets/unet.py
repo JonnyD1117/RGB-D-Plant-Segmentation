@@ -115,7 +115,7 @@ class UNet(nn.Module):
          )
 
         # self.final_out = nn.Conv2d(16, 1, 1)
-        self.final_out = nn.Conv2d(in_channels=16, out_channels=2, kernel_size=3, padding=(3 - 1) // 2)
+        self.final_out = nn.Conv2d(in_channels=16, out_channels=1, kernel_size=3, padding=(3 - 1) // 2)
 
     def forward(self, x):
         # Encoder

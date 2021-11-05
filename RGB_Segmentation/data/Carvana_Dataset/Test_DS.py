@@ -31,7 +31,7 @@ class TestData(Dataset):
 
     def resize_transform(self, image, mask, normalize=False):
         """
-        Transform resize the image/mask and optionally normalizes the image
+        Transform resize the images/mask and optionally normalizes the images
         """
         # Resize Image/Mask
         image = tf.resize(image, self.image_height)
@@ -67,7 +67,7 @@ class TestData(Dataset):
         # img = Image.open(img_path)
         # mask = Image.open(mask_path).convert('L')
 
-        # Use OpenCv to read-in image/mask from file
+        # Use OpenCv to read-in images/mask from file
         image = cv2.imread(img_path)
         mask = cv2.imread(mask_path, 0)
 

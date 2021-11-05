@@ -53,7 +53,7 @@ class ValidationData(Dataset):
         """
         Define the length of the dataset.
         """
-        # Check if number of image/masks are equal
+        # Check if number of images/masks are equal
         if self.num_img == self.num_mask:
             return self.num_img
         else:
@@ -61,10 +61,10 @@ class ValidationData(Dataset):
 
     def __getitem__(self, item):
         """
-        Get the image/mask at index "item"
+        Get the images/mask at index "item"
         :return:
         """
-        # Define full image/mask path for extracting data
+        # Define full images/mask path for extracting data
         img_path = os.path.join(self.img_dir, self.img_list[item])
         mask_path = os.path.join(self.mask_dir, self.mask_list[item])
 
@@ -73,9 +73,9 @@ class ValidationData(Dataset):
         msk = cv2.imread(mask_path, 0)
 
         if self.transform is not None:
-            # augment = self.album_transform(image=image, mask=mask)
+            # augment = self.album_transform(images=images, mask=mask)
             augment = self.transform(image=img, mask=msk)
-            img, msk = augment['image'], augment['mask']
+            img, msk = augment['images'], augment['mask']
 
         # Convert & Resize Image & Mask
         img, msk = Image.fromarray(img), Image.fromarray(msk)

@@ -323,15 +323,15 @@ if __name__ == '__main__':
         for image, mask in tqdm(dataLoader):
             image, mask = image.to(device), mask.to(device)
 
-            # print(f"IMAGE SHAPE = {image.shape}, IMAGE TYPE = {image.type()}")
+            # print(f"IMAGE SHAPE = {images.shape}, IMAGE TYPE = {images.type()}")
             # print(f"MASK SHAPE = {mask.shape}, MASK TYPE = {mask.type()}")
             #
             # print("#####################################----IMAGE----##################################################")
-            # print(image)
+            # print(images)
             # print("#####################################------MASK------#####################################")
             # print(mask)
             #
-            # print(f"IMAGE MAX {torch.max(image)}, IMAGE MIN {torch.min(image)}, IMAGE MEAN {torch.mean(image)}")
+            # print(f"IMAGE MAX {torch.max(images)}, IMAGE MIN {torch.min(images)}, IMAGE MEAN {torch.mean(images)}")
 
 
             output = nn_model(image)

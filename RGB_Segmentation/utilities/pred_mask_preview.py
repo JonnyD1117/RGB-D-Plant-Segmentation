@@ -50,7 +50,7 @@ def plot_img_mask_pred(image, mask, untrained_pred, trained_pred, no_train_loss,
     # Adds a subplot at the 1st position
     fig.add_subplot(rows, columns, 1)
 
-    # showing image
+    # showing images
     plt.imshow(real_image)
     plt.axis('off')
     plt.title("Image")
@@ -58,7 +58,7 @@ def plot_img_mask_pred(image, mask, untrained_pred, trained_pred, no_train_loss,
     # Adds a subplot at the 2nd position
     fig.add_subplot(rows, columns, 2)
 
-    # showing image
+    # showing images
     plt.imshow(real_mask)
     plt.axis('off')
     plt.title("Mask")
@@ -66,7 +66,7 @@ def plot_img_mask_pred(image, mask, untrained_pred, trained_pred, no_train_loss,
     # Adds a subplot at the 3rd position
     fig.add_subplot(rows, columns, 3)
 
-    # showing image
+    # showing images
     plt.imshow(untrained_pred_mask)
     plt.axis('off')
     plt.xlabel(f"UT Loss = {no_train_loss}")
@@ -75,7 +75,7 @@ def plot_img_mask_pred(image, mask, untrained_pred, trained_pred, no_train_loss,
     # Adds a subplot at the 3rd position
     fig.add_subplot(rows, columns, 4)
 
-    # showing image
+    # showing images
     plt.imshow(trained_pred_mask)
     plt.axis('off')
     plt.xlabel(f"T Loss = {train_loss}")
@@ -143,11 +143,11 @@ if __name__ == '__main__':
         image, mask = batch
         # Untrained Model Loss
         y_hat_untrained = model(image)
-        untrained_loss = loss_criterion(y_hat_untrained, mask)
+        untrained_loss = loss_criterion(torch.sigmoid(y_hat_untrained), torch.sigmoid(mask))
 
         # Trained Model
         y_hat_trained = train_model(image)
-        trained_loss = loss_criterion(y_hat_trained, mask)
+        trained_loss = loss_criterion(torch.sigmoid(y_hat_trained), torch.sigmoid(mask))
 
         img = torch.squeeze(image)
         msk_list = torch.squeeze(mask)
